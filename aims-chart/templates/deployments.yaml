@@ -1,0 +1,125 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "9"
+    generation: 11
+    name: aims-http
+    namespace:  {{ .Values.namespace }}
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: aims-http
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: aims-http
+      spec:
+        containers:
+        - env:
+          - name: EXPRESS_PORT
+            value: 3000
+          - name: MSSQL_HOST
+            value: '192.168.0.100'
+          - name: MSSQL_PORT
+            value: 500
+          - name: MSSQL_USER
+            value: 'userdb'
+          - name: MSSQL_PASS
+            value: 'slviehm#213'
+          image: devmicrosafe/aims-mob-admin@sha256:5c9324069e7e875f4d148bdc3d637817a6184df9abeeddcc604635b9e62e69bf
+          imagePullPolicy: IfNotPresent
+          name: aims-http
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        terminationGracePeriodSeconds: 30
+        securityContext: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "4"
+    generation: 4
+    name: aims-ws
+    namespace:  {{ .Values.namespace }}
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: aims-ws
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: aims-ws
+      spec:
+        containers:
+        - env:
+          - name: AIMSWS_PORT
+            value: "8081"
+          - name: POSTGRESQL_URL
+            value: postgres://postgres:microsafe.2022@aims-db/aims
+          - name: EMAIL_SERV_URL
+            value: email://user:pass@host:port/sender_account@server.com
+          - name: AIMSAPP_URL
+            value: http://aims-http.microsafe.com.mx
+          - name: GRAPHQL_URL
+            value: http://aims-gql.microsafe.com.mx
+          image: devmicrosafe/aims-ws@sha256:9bc6d96fbaf63e4b36987169ef55046b49b2ca5202c8bd3f0b449beb60e0edf7
+          imagePullPolicy: IfNotPresent
+          name: aims-ws
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+          - containerPort: 8081
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        terminationGracePeriodSeconds: 30
+        securityContext: {}
+kind: List
+metadata:
+  resourceVersion: ""

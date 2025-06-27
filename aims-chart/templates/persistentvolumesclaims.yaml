@@ -1,0 +1,54 @@
+apiVersion: "v1"
+items:
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "aims-db-storage"
+    namespace: {{ .Values.namespace }}
+  spec:
+    accessModes:
+    - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "1Gi"
+    volumeMode: Filesystem
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "aims-init-storage"
+    namespace: {{ .Values.namespace }}
+  spec:
+    accessModes:
+    - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "1Gi"
+    volumeMode: Filesystem
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "comm-db-storage"
+    namespace: {{ .Values.namespace }}
+  spec:
+    accessModes:
+    - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "1Gi"
+    volumeMode: Filesystem
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "comm-init-storage"
+    namespace: {{ .Values.namespace }}
+  spec:
+    accessModes:
+    - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "1Gi"
+    volumeMode: Filesystem
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

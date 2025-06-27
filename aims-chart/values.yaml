@@ -1,0 +1,3 @@
+replicaCount: 1
+namespace: oc-01-dev
+supplementalGroups: 1012130000

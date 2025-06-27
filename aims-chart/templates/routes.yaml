@@ -1,0 +1,37 @@
+apiVersion: v1
+items:
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    name: aims-http
+    namespace: {{ .Values.namespace }}
+  spec:
+    host: 
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: aims-http
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    name: aims-ws
+    namespace: {{ .Values.namespace }}
+  spec:
+    host: 
+    port:
+      targetPort: 8081
+    to:
+      kind: Service
+      name: aims-ws
+      weight: 100
+    wildcardPolicy: None   
+kind: List
+metadata:
+  resourceVersion: ""
