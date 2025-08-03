@@ -1,3 +1,0 @@
-replicaCount: 1
-namespace: app-name
-supplementalGroups: supp-group

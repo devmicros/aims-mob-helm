@@ -1,0 +1,20 @@
+# templates/services.yaml
+{{- range .Values.containers }}
+{{- if .service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .service.port }}
+      targetPort: {{ .service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    # AJUSTE CORRECTO: Apunta a la etiqueta específica de cada Deployment
+    app: {{ .name }}
+{{- end }}
+{{- end }}
