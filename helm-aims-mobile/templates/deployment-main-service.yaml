@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mainService.name }}
+spec:
+  replicas: {{ .Values.mainService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.mainService.name }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.mainService.annotations | nindent 8 }}
+      labels:
+        app: {{ .Values.mainService.name }}
+    spec:
+      containers:
+        - name: {{ .Values.mainService.serviceContainer.name }}
+          image: {{ .Values.mainService.serviceContainer.image | quote }}
+          resources:
+            {{- toYaml .Values.mainService.serviceContainer.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.mainService.name }}-config
+            - secretRef:
+                name: {{ .Values.mainService.secretName }}
+        - name: {{ .Values.mainService.proxyContainer.name }}
+          image: {{ .Values.mainService.proxyContainer.image | quote }}
+          resources:
+            {{- toYaml .Values.mainService.proxyContainer.resources | nindent 12 }}

@@ -1,0 +1,30 @@
+# templates/deployment-dbservice.yaml
+{{- if .Values.dbService }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.dbService.name }}
+spec:
+  replicas: {{ .Values.dbService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.dbService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbService.name }}
+    spec:
+      containers:
+        - name: {{ .Values.dbService.name }}
+          image: {{ .Values.dbService.image | quote }}
+          ports: # <-- AÑADIDO: Declaración del puerto del contenedor
+            - containerPort: {{ .Values.dbService.service.targetPort }}
+          resources:
+            {{- toYaml .Values.dbService.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.dbService.name }}-config
+            - secretRef:
+                name: {{ .Values.dbService.secretName }}
+{{- end }}

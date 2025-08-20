@@ -1,36 +1,39 @@
 # templates/hpa.yaml
-{{- range .Values.containers }}
-{{- if .autoscaling.enabled }}
+
+{{- /* Crea el HPA para el servicio 'mainService' si está definido y habilitado */}}
+{{- if and .Values.mainService .Values.mainService.autoscaling.enabled }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  # El nombre del HPA ahora es específico del servicio
-  name: {{ .name }}
+  name: {{ .Values.mainService.name }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    # Apunta al Deployment correcto
-    name: {{ .name }}
-  minReplicas: {{ .autoscaling.minReplicas }}
-  maxReplicas: {{ .autoscaling.maxReplicas }}
+    name: {{ .Values.mainService.name }}
+  minReplicas: {{ .Values.mainService.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.mainService.autoscaling.maxReplicas }}
   metrics:
-    {{- if .autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.mainService.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.mainService.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.mainService.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.mainService.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
-{{- end }}
+
+{{- /* Podrías añadir bloques "if" similares aquí para adminApp y dbService
+  si en el futuro quisieras que ellos también pudieran auto-escalar.
+  Por ahora, no es necesario ya que los tienes deshabilitados.
+*/}}
