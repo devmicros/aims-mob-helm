@@ -1,12 +1,34 @@
 # templates/configmap.yaml
-{{- range .Values.containers }}
+
+# --- ConfigMap para el servicio 'adminApp' ---
+{{- if .Values.adminApp }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .name }}-config
+  name: {{ .Values.adminApp.name }}-config
 data:
-  {{- range $key, $value := .config }}
-  {{ $key }}: {{ $value | quote }}
-  {{- end }}
+  {{- toYaml .Values.adminApp.config | nindent 2 }}
+{{- end }}
+
+# --- ConfigMap para el servicio 'mainService' ---
+{{- if .Values.mainService }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mainService.name }}-config
+data:
+  {{- toYaml .Values.mainService.config | nindent 2 }}
+{{- end }}
+
+# --- ConfigMap para el servicio 'dbService' ---
+{{- if .Values.dbService }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.dbService.name }}-config
+data:
+  {{- toYaml .Values.dbService.config | nindent 2 }}
 {{- end }}

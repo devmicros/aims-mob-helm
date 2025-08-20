@@ -1,0 +1,30 @@
+# templates/deployment-adminapp.yaml
+{{- if .Values.adminApp }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.adminApp.name }}
+spec:
+  replicas: {{ .Values.adminApp.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.adminApp.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.adminApp.name }}
+    spec:
+      containers:
+        - name: {{ .Values.adminApp.name }}
+          image: {{ .Values.adminApp.image | quote }}
+          ports: # <-- AÑADIDO: Declaración del puerto del contenedor
+            - containerPort: {{ .Values.adminApp.service.targetPort }}
+          resources:
+            {{- toYaml .Values.adminApp.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.adminApp.name }}-config
+            - secretRef:
+                name: {{ .Values.adminApp.secretName }}
+{{- end }}

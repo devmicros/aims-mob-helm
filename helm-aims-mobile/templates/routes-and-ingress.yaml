@@ -1,0 +1,90 @@
+# templates/routes-and-ingresses.yaml
+
+{{- /* Crea la Ruta/Ingress para el servicio 'adminApp' */}}
+{{- if and .Values.adminApp .Values.adminApp.ingress.enabled }}
+  {{- if .Values.adminApp.ingress.isOpenshiftRoute }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.adminApp.name }}
+spec:
+  {{- with .Values.adminApp.ingress.host }}
+  host: {{ . }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ .Values.adminApp.name }}
+  port:
+    # Apunta al puerto del contenedor definido en la sección service
+    targetPort: {{ .Values.adminApp.service.targetPort }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  {{- else }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.adminApp.name }}
+spec:
+  rules:
+    - {{- with .Values.adminApp.ingress.host }}
+      host: {{ . }}
+      {{- end }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.adminApp.name }}
+                port:
+                  # CORREGIDO: Apunta al puerto del servicio correcto
+                  number: {{ .Values.adminApp.service.port }}
+  {{- end }}
+{{- end }}
+
+
+{{- /* Crea la Ruta/Ingress para el servicio 'mainService' */}}
+{{- if and .Values.mainService .Values.mainService.ingress.enabled }}
+  {{- if .Values.mainService.ingress.isOpenshiftRoute }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.mainService.name }}
+spec:
+  {{- with .Values.mainService.ingress.host }}
+  host: {{ . }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ .Values.mainService.name }}
+  port:
+    targetPort: {{ .Values.mainService.service.targetPort }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  {{- else }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.mainService.name }}
+spec:
+  rules:
+    - {{- with .Values.mainService.ingress.host }}
+      host: {{ . }}
+      {{- end }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.mainService.name }}
+                port:
+                  number: {{ .Values.mainService.service.port }}
+  {{- end }}
+{{- end }}

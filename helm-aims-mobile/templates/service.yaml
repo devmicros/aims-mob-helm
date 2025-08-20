@@ -1,20 +1,57 @@
 # templates/services.yaml
-{{- range .Values.containers }}
-{{- if .service.enabled }}
+
+# --- Service para 'adminApp' ---
+{{- if and .Values.adminApp .Values.adminApp.service.enabled }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .name }}
+  name: {{ .Values.adminApp.name }}
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .service.port }}
-      targetPort: {{ .service.targetPort }}
+    - port: {{ .Values.adminApp.service.port }}
+      targetPort: {{ .Values.adminApp.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    # AJUSTE CORRECTO: Apunta a la etiqueta específica de cada Deployment
-    app: {{ .name }}
+    app: {{ .Values.adminApp.name }}
 {{- end }}
+
+
+# --- Service para 'mainService' ---
+{{- if and .Values.mainService .Values.mainService.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mainService.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.mainService.service.port }}
+      targetPort: {{ .Values.mainService.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.mainService.name }}
+{{- end }}
+
+
+# --- Service para 'dbService' ---
+{{- if and .Values.dbService .Values.dbService.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.dbService.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.dbService.service.port }}
+      targetPort: {{ .Values.dbService.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.dbService.name }}
 {{- end }}
