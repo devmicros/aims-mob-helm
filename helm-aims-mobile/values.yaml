@@ -2,7 +2,7 @@
 adminApp:
     name: aims-mob-admin # Nombre del primer contenedor (ej. el frontend o API principal)
     replicas: 1 # Podemos tener más réplicas para el servicio público
-    image: quay.io/microsafe_app_ban/aims-mob-admin-private@sha256:552ff95c63a4e5150e0c67d8750b7c1ed61c46f11ba88c6cd7805621f3d6e2c4
+    image: quay.io/microsafe_app_ban/aims-mob-admin-private@sha256:03e3e32871fa097dd7d221e6c606d1f7bb549a1a066a01d8e04156fd95c39eb0
     resources:
       requests:
         cpu: 100m
@@ -13,13 +13,12 @@ adminApp:
     config:
       NODE_ENV: "production"
       VITE_VERSION: "1.0.0"
-      ##Conexión con backend
-      VITE_EXPRESS_PROTOCOL: "http"
-      VITE_EXPRESS_HOST: "aims-mob-service"
-      VITE_EXPRESS_PORT: "8080" # Puerto del servicio web
+      #RHBK
       VITE_KEYCLOAK_URL: "rhbk-aims.prod.url"
       VITE_KEYCLOAK_REALM: "rhbk-aims.prod.realm"
       VITE_KEYCLOAK_CLIENT_ID: "rhbk-aims.prod.id"
+      #Conexión con backend
+      VITE_BACKEND_URL: "http://aims-mob-service"
     secretName: aims-mob-admin-secrets
     # Configuración del servicio interno
     service:
@@ -31,47 +30,44 @@ adminApp:
       enabled: true
       # Cambia a 'true' si estás en OpenShift para usar un objeto Route
       isOpenshiftRoute: true
-      #host: "api.tu-dominio-publico.com" # El dominio público
+      #host: "" # El dominio público
     autoscaling:
       enabled: false
 ###########################################################################
 mainService:
     name: aims-mob-service
-    replicas: 2
+    replicas: 1
     # Configuración no sensible
     annotations:
       instrumentation.opentelemetry.io/inject-nodejs: "true"
     config:
       NODE_ENV: "production"
       EXPRESS_PORT: "4000"
-      # Conexión con consola web de administración
-      FRONTEND_PROTOCOL: "http"
-      FRONTEND_IP: "aims-mob-admin"
-      FRONTEND_PORT: "80" # Opcional
       # Base de datos SQL Server 2022
-      MSSQL_HOST: "mssql-database.prod.host"
-      MSSQL_PORT: "mssql-database.prod.port"
+      MSSQL_HOST: "aimsmobile-database.prod.host"
+      MSSQL_PORT: "aimsmobile-database.prod.port"
+      #RHBK
+      KEYCLOAK_URL: "rhbk-aims.prod.url"
+      KEYCLOAK_REALM: "rhbk-aims.prod.realm"
+      KEYCLOAK_CLIENT_ID: "rhbk-aims.prod.id"
       # API AIMSv1
       AIMS1_API_URL: "http://aims-db-service:3000"
       # API Remedy
       REMEDY_API_URL: "remedy-aims.prod.svc"
-      REMEDY_USER: "RMDYUSR"
       ## Open Telemetry
       OTLP_METRIC_EXPORTER_URL: "opentelemetry-metrics.prod.url"
       OTLP_TRACE_EXPORTER_URL: "opentelemetry-traces.prod.url"
       OTLP_LOG_EXPORTER_URL: "opentelemetry-logs.prod.url"
-      KEYCLOAK_URL: "rhbk-aims.prod.url"
-      KEYCLOAK_REALM: "rhbk-aims.prod.realm"
-      KEYCLOAK_CLIENT_ID: "rhbk-aims.prod.id"
+      # Conexión con consola web de administración
       FRONTEND_VERSION: "1.0.0"
-      FRONTEND_EXPRESS_HOST: "aims-mob-admin"
-      FRONTEND_EXPRESS_PROTOCOL: "http"
-      FRONTEND_EXPRESS_PORT: "4000" # Opcional
+      FRONTEND_URL: "http://aims-mob-admin"
       FRONTEND_KEYCLOAK_URL: "rhbk-aims.prod.url"
       FRONTEND_KEYCLOAK_REALM: "rhbk-aims.prod.realm"
       FRONTEND_KEYCLOAK_CLIENT_ID: "rhbk-aims.prod.id"
+      FRONTEND_BACKEND_URL: "http://aims-mob-service"
       # Secretos y contraseñas
     secretName: aims-mob-service-secrets
+    conjurSecretName: aims-mob-service-conjur   # Secret creado por Conjur provider / CSI
     # Configuración del servicio interno
     service:
       enabled: true
@@ -81,7 +77,7 @@ mainService:
     ingress:
       enabled: true
       isOpenshiftRoute: true
-      #host: "api.tu-dominio-publico.com" # El dominio público
+#      host: "" # El dominio público
     # Configuración de auto-escalado PARA ESTE SERVICIO
     autoscaling:
       enabled: true
@@ -93,14 +89,14 @@ mainService:
 ###########################################################################
     serviceContainer:
       name: aims-mob-service-main
-      image: quay.io/microsafe_app_ban/aims-mob-service-private@sha256:d4cd9f853e625221e022d9e2f194a9db6fc22827679a84dc3e9b6d4655b1eac5
+      image: quay.io/microsafe_app_ban/aims-mob-service-private@sha256:1eada8cc1e9a95fbec205f8b649b7939c2721e844c8cf35feec0a8bada86961f
       resources:
         requests: { cpu: 200m, memory: 128Mi }
         limits: { cpu: 2500m, memory: 2048Mi }
 ###########################################################################
     proxyContainer:
       name: aims-mob-service-proxy
-      image: quay.io/microsafe_app_ban/aims-mob-proxy-private@sha256:f0ef8099ca6bb1ee1dbadd4fd03c7de6cee43c4180aa3e7d878eb3cf69305959
+      image: quay.io/microsafe_app_ban/aims-mob-proxy-private@sha256:181dde32479b5215f4069ce340e9f73377ce7b20ff593d41f4b4d97262d1cf87
       resources:
         requests: { cpu: 200m, memory: 128Mi }
         limits: { cpu: 2000m, memory: 1024Mi }
@@ -108,7 +104,7 @@ mainService:
 dbService:
     name: aims-db-service
     replicas: 1
-    image: quay.io/microsafe_app_ban/aims-db-service-private@sha256:d342254fbafc4ae84f4525b4a428a9438f25aa680dc09a545fa6bac57560b482
+    image: quay.io/microsafe_app_ban/aims-db-service-private@sha256:62abe860322a470e28b9a126503859127b6fd655976aec309ca2c427e60dbd3c
     resources:
       requests:
         cpu: 200m
@@ -118,9 +114,10 @@ dbService:
         memory: 256Mi
     config:
       # Base de datos SQL Server 2022
-      MSSQL_HOST: "mssql-database.prod.host"
-      MSSQL_PORT: "mssql-database.prod.port"
+      MSSQL_HOST: "aims-database.prod.host"
+      MSSQL_PORT: "aims-database.prod.port"
     secretName: aims-db-service-secrets
+    conjurSecretName: aims-db-service-conjur   # Secret creado por Conjur provider / CSI
     autoscaling:
       enabled: false
     service:
@@ -135,3 +132,21 @@ serviceAccount:
   annotations: {}
   # El nombre se puede dejar vacío si create es false.
   name: ""
+networkPolicy:
+  # Cambia a false si no quieres instalar las políticas de red
+  enabled: true
+externalEgress:
+  - name: aims-database-mssql
+    ip: "aims-database.prod.host" # El cliente DEBE cambiar esta IP por la de su entorno.
+    port: "aims-database.prod.port"
+  - name: aimsmobile-database-mssql
+    ip: "aimsmobile-database.prod.host" # El cliente DEBE cambiar esta IP.
+    port: "aimsmobile-database.prod.port"
+# El cliente debe obtener estos rangos de su equipo de redes.
+extraEgressRules: []
+  # - name: allow-remedy-services
+  #   ipBlock:
+  #     cidr: 10.50.20.0/24
+  # - name: allow-opentelemetry-collectors
+  #   ipBlock:
+  #     cidr: 10.60.0.0/16

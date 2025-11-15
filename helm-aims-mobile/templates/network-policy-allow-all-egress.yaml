@@ -1,0 +1,15 @@
+# templates/network-allow-all-egress.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-allow-all-egress
+spec:
+  podSelector: {} # Un selector vacío se aplica a todos los pods del namespace
+  egress:
+  - to:
+    ipBlock:
+      cidr: 0.0.0.0/0
+  policyTypes:
+  - Egress
+{{- end }}

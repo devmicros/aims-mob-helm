@@ -14,12 +14,13 @@ spec:
     metadata:
       labels:
         app: {{ .Values.dbService.name }}
+        app.kubernetes.io/component: {{ .Values.dbService.name }}
     spec:
       containers:
         - name: {{ .Values.dbService.name }}
           image: {{ .Values.dbService.image | quote }}
-          ports: # <-- AÑADIDO: Declaración del puerto del contenedor
-            - containerPort: {{ .Values.dbService.service.targetPort }}
+          ports:
+            - containerPort: {{ .Values.dbService.service.targetPort }} # 3000
           resources:
             {{- toYaml .Values.dbService.resources | nindent 12 }}
           envFrom:
@@ -27,4 +28,22 @@ spec:
                 name: {{ .Values.dbService.name }}-config
             - secretRef:
                 name: {{ .Values.dbService.secretName }}
+{{- if .Values.dbService.conjurSecretName }}
+            - secretRef:
+                name: {{ .Values.dbService.conjurSecretName }}
+{{- end }}
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: {{ .Values.dbService.service.targetPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: {{ .Values.dbService.service.targetPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
 {{- end }}

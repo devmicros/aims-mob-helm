@@ -1,13 +1,15 @@
 # templates/routes-and-ingresses.yaml
 
 {{- /* Crea la Ruta/Ingress para el servicio 'adminApp' */}}
-{{- if and .Values.adminApp .Values.adminApp.ingress.enabled }}
+{{- if and .Values.adminApp .Values.adminApp.service.enabled .Values.adminApp.ingress.enabled }}
   {{- if .Values.adminApp.ingress.isOpenshiftRoute }}
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .Values.adminApp.name }}
+  annotations:
+    haproxy.router.openshift.io/hsts_header: "max-age=31536000;includeSubDomains"
 spec:
   {{- with .Values.adminApp.ingress.host }}
   host: {{ . }}
@@ -16,8 +18,7 @@ spec:
     kind: Service
     name: {{ .Values.adminApp.name }}
   port:
-    # Apunta al puerto del contenedor definido en la sección service
-    targetPort: {{ .Values.adminApp.service.targetPort }}
+    targetPort: http  # nombre del puerto del Service
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
@@ -40,20 +41,20 @@ spec:
               service:
                 name: {{ .Values.adminApp.name }}
                 port:
-                  # CORREGIDO: Apunta al puerto del servicio correcto
-                  number: {{ .Values.adminApp.service.port }}
+                  name: http  # nombre del puerto del Service
   {{- end }}
 {{- end }}
 
-
 {{- /* Crea la Ruta/Ingress para el servicio 'mainService' */}}
-{{- if and .Values.mainService .Values.mainService.ingress.enabled }}
+{{- if and .Values.mainService .Values.mainService.service.enabled .Values.mainService.ingress.enabled }}
   {{- if .Values.mainService.ingress.isOpenshiftRoute }}
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .Values.mainService.name }}
+  annotations:
+    haproxy.router.openshift.io/hsts_header: "max-age=31536000;includeSubDomains"
 spec:
   {{- with .Values.mainService.ingress.host }}
   host: {{ . }}
@@ -62,7 +63,7 @@ spec:
     kind: Service
     name: {{ .Values.mainService.name }}
   port:
-    targetPort: {{ .Values.mainService.service.targetPort }}
+    targetPort: http  # nombre del puerto del Service
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
@@ -85,6 +86,6 @@ spec:
               service:
                 name: {{ .Values.mainService.name }}
                 port:
-                  number: {{ .Values.mainService.service.port }}
+                  name: http  # nombre del puerto del Service
   {{- end }}
 {{- end }}

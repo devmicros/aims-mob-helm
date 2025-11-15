@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,10 +14,13 @@ spec:
         {{- toYaml .Values.mainService.annotations | nindent 8 }}
       labels:
         app: {{ .Values.mainService.name }}
+        app.kubernetes.io/component: {{ .Values.mainService.name }}
     spec:
       containers:
         - name: {{ .Values.mainService.serviceContainer.name }}
           image: {{ .Values.mainService.serviceContainer.image | quote }}
+          ports:
+            - containerPort: {{ .Values.mainService.service.targetPort }} # 8091
           resources:
             {{- toYaml .Values.mainService.serviceContainer.resources | nindent 12 }}
           envFrom:
@@ -24,7 +28,28 @@ spec:
                 name: {{ .Values.mainService.name }}-config
             - secretRef:
                 name: {{ .Values.mainService.secretName }}
+{{- if .Values.mainService.conjurSecretName }}
+            - secretRef:
+                name: {{ .Values.mainService.conjurSecretName }}
+{{- end }}
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: {{ .Values.mainService.service.targetPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: {{ .Values.mainService.service.targetPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
         - name: {{ .Values.mainService.proxyContainer.name }}
           image: {{ .Values.mainService.proxyContainer.image | quote }}
           resources:
             {{- toYaml .Values.mainService.proxyContainer.resources | nindent 12 }}
+          # Añade ports si el proxy escucha y debe ser alcanzable:
+          # ports:
+          #   - containerPort: 8080
